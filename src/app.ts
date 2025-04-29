@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from "body-parser";
 
 import { errorHandler } from "./middlewares/errorHandler";
+import authRoute from './routes/AuthRoute';
 
 const app = express();
 app.use(bodyParser.json());
@@ -13,6 +14,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+app.use('auth', authRoute)
 
 app.use(errorHandler)
 
