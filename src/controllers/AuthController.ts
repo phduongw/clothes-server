@@ -3,8 +3,10 @@ import bcrypt from 'bcryptjs';
 
 import Users from '../models/user';
 import { ISignUpRequest } from "./request/SignUpRequest";
+import { ISignInRequest } from "./request/SignInRequest";
 import { BaseResponse } from "./responses/BaseResponse";
-
+import { generateToken } from "../middlewares/jwt";
+import config from "../config/config";
 
 export const signup = async (req: Request<{}, {}, ISignUpRequest>, resp: Response) => {
     const body = req.body;
@@ -38,8 +40,29 @@ export const signup = async (req: Request<{}, {}, ISignUpRequest>, resp: Respons
     }
 }
 
+export const login = async (req: Request<{}, {}, ISignInRequest>, resp: Response) => {
+    const body = req.body;
+    const user = await findUserByEmail(body.email);
+    if (!user) {
+        resp.status(200).json(new BaseResponse().failed(400, "Email or password isn't correct"));
+        return;
+    }
+
+    const isMatch = await bcrypt.compare(body.password, user.password);
+    if (!isMatch) {
+        resp.status(200).json(new BaseResponse().failed(400, "Email or password isn't correct"));
+        return;
+    }
+
+    const accessToken = generateToken(user);
+    resp.status(200).json(new BaseResponse().ok({ accessToken, expiresIn: config.expiresIn }));
+}
 
 const isExistAccount = async (email: string) => {
-    const existingUser = await Users.findOne({ email, active: true });
+    const existingUser = await findUserByEmail(email);
     return !!existingUser;
+}
+
+const findUserByEmail = async (email: string) => {
+    return Users.findOne({ email, active: true });
 }
