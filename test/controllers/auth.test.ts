@@ -23,7 +23,7 @@ describe("signup user", () => {
         gender: Gender.MALE,
         role: Role.ADMIN,
         phoneNumber: '0989211621',
-        password: "3gAn@130599",
+        password: "duongExtension@110299",
         createdAt: new Date(),
         updatedAt: new Date(),
     }
@@ -39,8 +39,8 @@ describe("signup user", () => {
             gender: Gender.MALE,
             dob: new Date(),
             email: 'eganpham.99@gmail.com',
-            password: '3gAn@130599',
-            repeatPassword: '3gAn@130599',
+            password: 'duongExtension@110299',
+            repeatPassword: 'duongExtension@110299',
             phoneNumber: '0989211621'
         });
 
@@ -62,7 +62,7 @@ describe("signup user", () => {
             gender: Gender.MALE,
             dob: new Date(),
             email: 'eganpham.99@gmail.com',
-            password: '3gAn@130599',
+            password: 'duongExtension@110299',
             repeatPassword: '3gAn@130522',
             phoneNumber: '0989211621'
         });
@@ -91,8 +91,8 @@ describe("signup user", () => {
             gender: Gender.MALE,
             dob: new Date(),
             email: 'eganpham.99@gmail.com',
-            password: '3gAn@130599',
-            repeatPassword: '3gAn@130599',
+            password: 'duongExtension@110299',
+            repeatPassword: 'duongExtension@110299',
             phoneNumber: '0989211621'
         });
         const response = mockResponse();
@@ -113,8 +113,8 @@ describe("signup user", () => {
             gender: Gender.MALE,
             dob: new Date(),
             email: 'eganpham.99@gmail.com',
-            password: '3gAn@130599',
-            repeatPassword: '3gAn@130599',
+            password: 'duongExtension@110299',
+            repeatPassword: 'duongExtension@110299',
             phoneNumber: '0989211621'
         });
         const response = mockResponse();
@@ -141,8 +141,8 @@ describe("signup user", () => {
             gender: Gender.MALE,
             dob: new Date(),
             email: 'eganpham.99@gmail.com',
-            password: '3gAn@130599',
-            repeatPassword: '3gAn@130599',
+            password: 'duongExtension@110299',
+            repeatPassword: 'duongExtension@110299',
             phoneNumber: '0989211621'
         });
         const resp = mockResponse();
@@ -169,8 +169,8 @@ describe("signup user", () => {
             gender: Gender.MALE,
             dob,
             email: 'eganpham.99@gmail.com',
-            password: '3gAn@130599',
-            repeatPassword: '3gAn@130599',
+            password: 'duongExtension@110299',
+            repeatPassword: 'duongExtension@110299',
             phoneNumber: '0989211621'
         });
 
