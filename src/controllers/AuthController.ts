@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 
-import Users from '../models/user';
+import Users, {IUser, Role} from '../models/user';
 import { ISignUpRequest } from "./request/SignUpRequest";
 import { ISignInRequest } from "./request/SignInRequest";
 import { BaseResponse } from "./responses/BaseResponse";
@@ -12,19 +12,24 @@ export const signup = async (req: Request<{}, {}, ISignUpRequest>, resp: Respons
     const body = req.body;
     try {
         if (await isExistAccount(body.email)) {
-            resp.status(200).json(new BaseResponse().failed(400, "Email already exist"));
+            resp.status(200).json(new BaseResponse<null>().failed(400, "Email already exist"));
             return;
         }
 
         if (body.password !== body.repeatPassword) {
-            resp.status(200).json(new BaseResponse().failed(400, "Password and not match"));
+            resp.status(200).json(new BaseResponse<null>().failed(400, "Password and not match"));
             return;
         }
 
         const hashedPassword = await bcrypt.hash(body.password, 12)
         const user = new Users({
-            ...body,
-            password: hashedPassword
+            fullName: body.fullName,
+            email: body.email,
+            password: hashedPassword,
+            dob: body.dob,
+            gender: body.gender,
+            phoneNumber: body.phoneNumber,
+            role: Role.GUEST,
         });
 
         const createdUser = await user.save();
@@ -33,9 +38,9 @@ export const signup = async (req: Request<{}, {}, ISignUpRequest>, resp: Respons
             return;
         }
 
-        resp.status(200).json(new BaseResponse().ok(createdUser));
+        resp.status(200).json(new BaseResponse<IUser>().ok(createdUser));
     } catch (error) {
-        console.log("Creating account failed cause: ", error)
+        console.log("Creating account failed cause: ", error);
         resp.status(200).json(new BaseResponse().failed(500, "Internal Server Error"));
     }
 }

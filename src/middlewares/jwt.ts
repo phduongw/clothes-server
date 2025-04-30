@@ -19,7 +19,7 @@ export const verifyToken = (req: Request, resp: Response, next: NextFunction)=> 
         const token = authHeader.split(' ')[1];
         jwt.verify(token, config.clientSecret, (err: any, user: any) => {
             if (err) {
-                return resp.status(403).json(new BaseResponse().failed(403, "Forbidden"));
+                return resp.status(401).json(new BaseResponse().failed(401, "Token invalid"));
             }
 
             (req as any).user = user;
