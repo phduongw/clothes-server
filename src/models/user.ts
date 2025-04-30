@@ -33,10 +33,10 @@ export interface IUser {
     gender: Gender
     phoneNumber: string;
     infoReceiving?: IAddress[];
-    role: string;
+    role: Role;
     active: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 const userSchema = new Schema<IUser>({
