@@ -12,7 +12,7 @@ interface Config {
 const config: Config = {
     port: Number(process.env.PORT) || 8828,
     nodeEnv: process.env.NODE_ENV ?? 'development',
-    clientSecret: process.env.CLIENT_SECRET ?? '3gAn@130599_y3u3mv0t4n',
+    clientSecret: process.env.CLIENT_SECRET ?? 'duongExtension@',
     expiresIn: process.env.EXPIRES_IN ?? '1h'
 }
 

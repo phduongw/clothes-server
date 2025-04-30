@@ -43,7 +43,7 @@ describe('auth-middleware', () => {
             gender: Gender.MALE,
             role: Role.ADMIN,
             phoneNumber: '0989211621',
-            password: "3gAn@130599",
+            password: "duongExtension@",
             createdAt: new Date(),
             updatedAt: new Date(),
         }
