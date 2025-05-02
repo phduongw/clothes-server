@@ -1,9 +1,11 @@
 import Users, {Gender, IUser, Role} from "../../src/models/user";
 import {createRequest, createResponse} from "node-mocks-http";
 import {ISignUpRequest} from "../../src/controllers/request/SignUpRequest";
-import {signup} from "../../src/controllers/AuthController";
+import {login, signup} from "../../src/controllers/AuthController";
 import {BaseResponse} from "../../src/controllers/responses/BaseResponse";
-import {hash} from "bcryptjs";
+import {compare, hash} from "bcryptjs";
+import {generateToken} from "../../src/middlewares/jwt";
+import {ISignInRequest} from "../../src/controllers/request/SignInRequest";
 
 
 jest.mock("bcryptjs");
@@ -208,5 +210,66 @@ describe("signup user", () => {
         expect(responseData.data?.phoneNumber).toBe(createdUser.phoneNumber);
         expect([null, undefined]).toContain(createdUser.infoReceiving);
         expect(responseData.data?.role).toBe(createdUser.role);
+    });
+})
+
+describe('Login user', () => {
+    const mockRequest = (body: ISignInRequest) => createRequest({
+        method: "POST",
+        body: body,
+    });
+    const mockResponse = () => createResponse();
+    const createdUser: IUser = {
+        fullName: "Pham Hoang Duong",
+        email: 'eganpham.99@gmail.com',
+        password: 'hashedPassword',
+        dob: new Date(),
+        gender: Gender.MALE,
+        phoneNumber: '0989211621',
+        role: Role.GUEST,
+        active: true
+    };
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    const body: ISignInRequest = {
+        email: 'eganpham.99@gmail.com',
+        password: 'duongExtension@110299',
+    }
+
+    it('Should return 400 if email not found', async () => {
+        const req = mockRequest(body);
+        const resp = mockResponse();
+        const compareMock = jest.fn();
+        const generateTokenMock = jest.fn();
+        (Users.findOne as jest.Mock).mockResolvedValue(undefined);
+        (compare as jest.Mock) = compareMock;
+        (generateToken as jest.Mock) = generateTokenMock;
+        await login(req, resp);
+        const respData = resp._getJSONData() as BaseResponse<null>;
+
+        expect(resp.statusCode).toBe(200);
+        expect(respData.status.code).toBe(400);
+        expect(respData.status.message).toBe("Email or password isn't correct");
+        expect(compareMock).not.toHaveBeenCalled();
+        expect(generateTokenMock).not.toHaveBeenCalled();
+    });
+    it('should return 400 if password is wrong', async () => {
+        const req = mockRequest(body);
+        const resp = mockResponse();
+        (Users.findOne as jest.Mock).mockResolvedValueOnce(createdUser);
+        (compare as jest.Mock).mockResolvedValue(false);
+
+        await login(req, resp);
+        const respData = resp._getJSONData() as BaseResponse<null>;
+
+        expect(resp.statusCode).toBe(200);
+        expect(respData.status.code).toBe(400);
+        expect(respData.status.message).toBe("Email or password isn't correct");
+        expect(generateToken).not.toHaveBeenCalled();
+        expect(compare).toHaveBeenCalled();
+        expect([null, undefined]).toContain(respData.data)
     });
 })
