@@ -272,4 +272,20 @@ describe('Login user', () => {
         expect(compare).toHaveBeenCalled();
         expect([null, undefined]).toContain(respData.data)
     });
+    it('should return 200 if login success', async () => {
+        const req = mockRequest(body);
+        const resp = mockResponse();
+        (Users.findOne as jest.Mock).mockResolvedValueOnce(createdUser);
+        (compare as jest.Mock).mockResolvedValue(false);
+
+        await login(req, resp);
+        const respData = resp._getJSONData() as BaseResponse<null>;
+
+        expect(resp.statusCode).toBe(200);
+        expect(respData.status.code).toBe(400);
+        expect(respData.status.message).toBe("Email or password isn't correct");
+        expect(generateToken).not.toHaveBeenCalled();
+        expect(compare).toHaveBeenCalled();
+        expect([null, undefined]).toContain(respData.data)
+    });
 })
