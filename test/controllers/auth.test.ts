@@ -6,6 +6,7 @@ import {BaseResponse} from "../../src/controllers/responses/BaseResponse";
 import {compare, hash} from "bcryptjs";
 import {generateToken} from "../../src/middlewares/jwt";
 import {ISignInRequest} from "../../src/controllers/request/SignInRequest";
+import {ILoginResponse} from "../../src/controllers/responses/LoginResponse";
 
 
 jest.mock("bcryptjs");
@@ -276,16 +277,17 @@ describe('Login user', () => {
         const req = mockRequest(body);
         const resp = mockResponse();
         (Users.findOne as jest.Mock).mockResolvedValueOnce(createdUser);
-        (compare as jest.Mock).mockResolvedValue(false);
-
+        (compare as jest.Mock).mockResolvedValue(true);
+        (generateToken as jest.Mock).mockReturnValueOnce("generatedToken");
         await login(req, resp);
-        const respData = resp._getJSONData() as BaseResponse<null>;
-
+        const respData = resp._getJSONData() as BaseResponse<ILoginResponse>;
+        console.log(respData)
+        expect(generateToken).toHaveBeenCalled();
         expect(resp.statusCode).toBe(200);
-        expect(respData.status.code).toBe(400);
-        expect(respData.status.message).toBe("Email or password isn't correct");
-        expect(generateToken).not.toHaveBeenCalled();
+        expect(respData.status.code).toBe(200);
+        expect(respData.status.message).toBe("Success");
+        expect(respData.data?.accessToken).toBe("generatedToken");
+        expect(respData.data?.expiresIn).toBe("1");
         expect(compare).toHaveBeenCalled();
-        expect([null, undefined]).toContain(respData.data)
     });
 })

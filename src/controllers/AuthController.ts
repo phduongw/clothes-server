@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 
+import config from "../config/config";
 import Users, {IUser, Role} from '../models/user';
 import { ISignUpRequest } from "./request/SignUpRequest";
 import { ISignInRequest } from "./request/SignInRequest";
 import { BaseResponse } from "./responses/BaseResponse";
 import { generateToken } from "../middlewares/jwt";
-import config from "../config/config";
+import { ILoginResponse } from "./responses/LoginResponse";
 
 export const signup = async (req: Request<{}, {}, ISignUpRequest>, resp: Response) => {
     const body = req.body;
@@ -60,7 +61,11 @@ export const login = async (req: Request<{}, {}, ISignInRequest>, resp: Response
     }
 
     const accessToken = generateToken(user);
-    resp.status(200).json(new BaseResponse().ok({ accessToken, expiresIn: config.expiresIn }));
+    const data: ILoginResponse = {
+        accessToken,
+        expiresIn: config.expiresIn
+    }
+    resp.status(200).json(new BaseResponse<ILoginResponse>().ok(data));
 }
 
 const isExistAccount = async (email: string) => {
