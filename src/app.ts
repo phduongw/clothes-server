@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-app.use('auth', authRoute)
+app.use('/auth', authRoute)
 
 app.use(errorHandler)
 
