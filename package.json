@@ -21,6 +21,7 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.0",
+    "multer": "^1.4.5-lts.2",
     "node-mocks-http": "^1.17.0"
   },
   "devDependencies": {
@@ -29,6 +30,7 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mocha": "^10.0.10",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.15.2",
     "@types/supertest": "^6.0.3",
     "chai": "^5.2.0",

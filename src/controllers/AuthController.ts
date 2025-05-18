@@ -8,17 +8,18 @@ import { ISignInRequest } from "./request/SignInRequest";
 import { BaseResponse } from "./responses/BaseResponse";
 import { generateToken } from "../middlewares/jwt";
 import { ILoginResponse } from "./responses/LoginResponse";
+import {errorCode} from "../common/errorConstants";
 
 export const signup = async (req: Request<{}, {}, ISignUpRequest>, resp: Response) => {
     const body = req.body;
     try {
         if (await isExistAccount(body.email)) {
-            resp.status(200).json(new BaseResponse<null>().failed(400, "Email already exist"));
+            resp.status(200).json(new BaseResponse<null>().failed(400, "Email already exist", errorCode.auth.emailExist));
             return;
         }
 
         if (body.password !== body.repeatPassword) {
-            resp.status(200).json(new BaseResponse<null>().failed(400, "Password and not match"));
+            resp.status(200).json(new BaseResponse<null>().failed(400, "Password and not match", errorCode.auth.passwordNotMatch));
             return;
         }
 
@@ -35,14 +36,14 @@ export const signup = async (req: Request<{}, {}, ISignUpRequest>, resp: Respons
 
         const createdUser = await user.save();
         if (!createdUser) {
-            resp.status(200).json(new BaseResponse().failed(400, "Failed to create account"));
+            resp.status(200).json(new BaseResponse().failed(400, "Failed to create account", errorCode.auth.failedToSave));
             return;
         }
 
         resp.status(200).json(new BaseResponse<IUser>().ok(createdUser));
     } catch (error) {
         console.log("Creating account failed cause: ", error);
-        resp.status(200).json(new BaseResponse().failed(500, "Internal Server Error"));
+        resp.status(200).json(new BaseResponse().failed(500, "Internal Server Error", errorCode.common.serverDown));
     }
 }
 
@@ -50,13 +51,14 @@ export const login = async (req: Request<{}, {}, ISignInRequest>, resp: Response
     const body = req.body;
     const user = await findUserByEmail(body.email);
     if (!user) {
-        resp.status(200).json(new BaseResponse().failed(400, "Email or password isn't correct"));
+        resp.status(200).json(new BaseResponse().failed(400, "Email or password isn't correct", errorCode.auth.loginFailure));
         return;
     }
 
     const isMatch = await bcrypt.compare(body.password, user.password);
     if (!isMatch) {
-        resp.status(200).json(new BaseResponse().failed(400, "Email or password isn't correct"));
+        console.log("login ---> " + body.email + "'s password is incorrect")
+        resp.status(200).json(new BaseResponse().failed(400, "Email or password isn't correct", errorCode.auth.loginFailure));
         return;
     }
 

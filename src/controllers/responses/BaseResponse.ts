@@ -2,11 +2,12 @@ export interface IBaseResponse<T> {
     status: {
         code: number;
         message: string | string[];
+        errorCode?: string
         timestamp: string;
     },
     data?: T;
     ok(data: T): BaseResponse<T>;
-    failed(statusCode: number, message: string): BaseResponse<T>;
+    failed(statusCode: number, message: string, errorCode: string): BaseResponse<T>;
 }
 
 export class BaseResponse<T> implements IBaseResponse<T>{
@@ -14,6 +15,7 @@ export class BaseResponse<T> implements IBaseResponse<T>{
         code: number;
         message: string | string [];
         timestamp: string;
+        errorCode?: string
     };
 
     data?: T;
@@ -32,9 +34,10 @@ export class BaseResponse<T> implements IBaseResponse<T>{
         return this;
     };
 
-    failed(statusCode: number, message: string | string[]): this {
+    failed(statusCode: number, message: string | string[], errorCode: string): this {
         this.status.code = statusCode;
         this.status.message = message;
+        this.status.errorCode = errorCode;
         this.status.timestamp = new Date().toISOString();
 
         return this;

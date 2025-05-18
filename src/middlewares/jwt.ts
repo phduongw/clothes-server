@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import config from '../config/config';
 import { IUser } from "../models/user";
 import {BaseResponse} from "../controllers/responses/BaseResponse";
+import {errorCode} from "../common/errorConstants";
 
 export const generateToken = (user: IUser): string => {
     return jwt.sign({
@@ -19,7 +20,7 @@ export const verifyToken = (req: Request, resp: Response, next: NextFunction)=> 
         const token = authHeader.split(' ')[1];
         jwt.verify(token, config.clientSecret, (err: any, user: any) => {
             if (err) {
-                return resp.status(401).json(new BaseResponse().failed(401, "Token invalid"));
+                return resp.status(401).json(new BaseResponse().failed(401, "Token invalid", errorCode.auth.tokenInvalid));
             }
 
             (req as any).user = user;
@@ -30,5 +31,5 @@ export const verifyToken = (req: Request, resp: Response, next: NextFunction)=> 
         return;
     }
 
-    return resp.status(401).json(new BaseResponse().failed(401, "Unauthorized"));
+    return resp.status(401).json(new BaseResponse().failed(401, "Unauthorized", errorCode.auth.authenticatedFailed));
 }
