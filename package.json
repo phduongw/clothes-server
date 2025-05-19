@@ -20,9 +20,11 @@
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
+    "minio": "^8.0.5",
     "mongoose": "^8.14.0",
     "multer": "^1.4.5-lts.2",
-    "node-mocks-http": "^1.17.0"
+    "node-mocks-http": "^1.17.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/chai": "^5.2.1",

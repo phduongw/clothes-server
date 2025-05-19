@@ -34,5 +34,44 @@ export interface IProduct {
     typeProduct: ProductType;
     os: OsType;
     brand: BrandType;
-    specifications: ISpecification;
+    specifications?: ISpecification;
+    images: string[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
+
+const productSchema = new Schema<IProduct>({
+    name: {
+        type: String,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    typeProduct: {
+        type: String,
+        required: true,
+        enum: Object.values(ProductType)
+    },
+    os: {
+        type: String,
+        required: true,
+        enum: Object.values(OsType)
+    },
+    brand: {
+        type: String,
+        required: true,
+        enum: Object.values(BrandType)
+    },
+    specifications: {
+        type: Object,
+        required: false
+    },
+    images: {
+        type: [String],
+        required: true
+    }
+}, { timestamps: true });
+
+export default model<IProduct>("Products", productSchema);

@@ -7,7 +7,12 @@ export const errorCode = {
         tokenInvalid: 'CW-01-005',
         authenticatedFailed: 'CW-01-006',
     },
+    product: {
+        saveProductFailed: 'CW-02-001',
+        productNotFound: 'CW-02-002',
+    },
     common: {
         serverDown: 'CW-10-001',
+        fileImageNotAllow: 'CW-10-002',
     }
 }
