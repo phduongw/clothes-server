@@ -7,6 +7,20 @@ import { BaseResponse } from "./responses/BaseResponse";
 import { errorCode } from "../common/errorConstants";
 import { bucketName, minioClient } from "../middlewares/minioClient";
 
+type RequestPagingQuery = {
+    page: number;
+    size: number;
+}
+
+
+type ProductFilter = {
+    productFilter: 'best-seller' | 'new-arrival' | 'featured-products' | 'all';
+}
+
+type AllProductQueryFilter = ProductFilter & RequestPagingQuery;
+
+
+
 export const createNewProduct = async (req: Request<{}, {}, CreateProductRequest>, resp: Response) => {
     const allowsType = ["image/jpeg", "image/png"];
     const body = req.body;
@@ -50,6 +64,41 @@ export const createNewProduct = async (req: Request<{}, {}, CreateProductRequest
     } catch (error) {
         console.log("Creating product failed cause: ", error);
         resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+    }
+}
+
+export const findAll = async (req: Request<{}, {}, {}, AllProductQueryFilter>, res: Response) => {
+    const { page = 1, size = 10, productFilter = 'new-arrival' } = req.query;
+    try {
+        let condition: any = { active: true };
+        switch (productFilter) {
+            case 'best-seller':
+            case 'featured-products':
+            case 'new-arrival': {
+                const threeMonthAgo = new Date();
+                threeMonthAgo.setMonth(threeMonthAgo.getMonth() - 3);
+                condition.createdAt = {
+                    $gte: threeMonthAgo
+                };
+                break;
+            }
+            default:
+                break;
+        }
+        const total = await Products.countDocuments(condition);
+        const allProduct = await Products.find(condition)
+            .skip((page - 1) * size)
+            .limit(size);
+        for (const product of allProduct) {
+            for (let i = 0; i < product.images.length; i++) {
+                product.images[i] = await getPresignedUrl(product.images[i]);
+            }
+        }
+
+        res.status(200).json(new BaseResponse<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: allProduct, page, size, totalData: total }))
+    } catch (error) {
+        console.log("Finding all products failed cause: ", error);
+        res.status(200).json(new BaseResponse<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: [], page, size, totalData: 0 }))
     }
 }
 

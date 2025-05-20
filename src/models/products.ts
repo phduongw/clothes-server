@@ -30,6 +30,7 @@ export interface ISpecification {
 
 export interface IProduct {
     name: string;
+    active: boolean;
     price: number;
     typeProduct: ProductType;
     os: OsType;
@@ -44,6 +45,10 @@ const productSchema = new Schema<IProduct>({
     name: {
         type: String,
         required: true
+    },
+    active: {
+        type: Boolean,
+        default: true
     },
     price: {
         type: Number,
