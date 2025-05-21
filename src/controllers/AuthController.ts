@@ -65,7 +65,8 @@ export const login = async (req: Request<{}, {}, ISignInRequest>, resp: Response
     const accessToken = generateToken(user);
     const data: ILoginResponse = {
         accessToken,
-        expiresIn: config.expiresIn
+        expiresIn: config.expiresIn,
+        favoriteList: user.favoritesProduct
     }
     resp.status(200).json(new BaseResponse<ILoginResponse>().ok(data));
 }

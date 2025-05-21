@@ -25,11 +25,10 @@ export const verifyToken = (req: Request, resp: Response, next: NextFunction)=> 
 
             (req as any).user = user;
 
-            return next();
+            next();
         });
-
-        return;
+    } else {
+        resp.status(401).json(new BaseResponse().failed(401, "Unauthorized", errorCode.auth.authenticatedFailed));
     }
-
-    return resp.status(401).json(new BaseResponse().failed(401, "Unauthorized", errorCode.auth.authenticatedFailed));
 }
+

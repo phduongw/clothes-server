@@ -37,6 +37,7 @@ export interface IUser {
     active: boolean;
     createdAt?: Date;
     updatedAt?: Date;
+    favoritesProduct: string[];
 }
 
 const userSchema = new Schema<IUser>({
@@ -78,6 +79,10 @@ const userSchema = new Schema<IUser>({
     active: {
         type: Boolean,
         default: true
+    },
+    favoritesProduct: {
+        type: [String],
+        required: false
     }
 }, { timestamps: true });
 

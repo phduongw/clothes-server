@@ -1,7 +1,8 @@
 import {Router} from "express";
 
 import {upload} from "../middlewares/uploadFile";
-import {createNewProduct, findAll, findById} from "../controllers/ProductController";
+import {createNewProduct, findAll, findById, reviseFavoriteList} from "../controllers/ProductController";
+import {verifyToken} from "../middlewares/jwt";
 
 const router = Router();
 
@@ -9,6 +10,7 @@ const router = Router();
 
 router.get('/', findAll);
 router.get('/:productId', findById);
+router.put('/revise-favorite/:productId', verifyToken, reviseFavoriteList);
 router.post('/create', upload.fields([
     {name: 'images', maxCount: 5}
 ]), createNewProduct)

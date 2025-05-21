@@ -6,6 +6,7 @@ import { CreateProductRequest } from "./request/CreateProductRequest";
 import { BaseResponse } from "./responses/BaseResponse";
 import { errorCode } from "../common/errorConstants";
 import { bucketName, minioClient } from "../middlewares/minioClient";
+import User from "../models/user";
 
 type RequestPagingQuery = {
     page: number;
@@ -120,6 +121,43 @@ export const findById = async (req: Request<{ productId: string }, {}, {}>, res:
             ...product,
             images: urlImage
         }))
+    } catch (error) {
+        console.log("Finding product failed cause: ", error);
+        res.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+    }
+}
+
+export const reviseFavoriteList = async (req: Request<{ productId: string }, {}, {}, {action: 'add' | 'remove'}>, res: Response) => {
+    const { productId } = req.params;
+    let { action } = req.query;
+    const { email } = (req as any).user as { fullName: string; email: string; role: string; };
+    try {
+        const product = await Products.exists({_id: productId})
+        if (!product) {
+            console.log("Cannot find product with id: " + productId);
+            res.status(200).json(new BaseResponse<null>().failed(404, "Product doesn't existing", errorCode.product.productNotFound));
+            return
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            res.status(200).json(new BaseResponse<null>().failed(404, "User doesn't existing", errorCode.auth.emailExist));
+            return;
+        }
+
+        const favoritesProduct = user.favoritesProduct;
+        action = action ?? 'add'
+
+        if (action === 'add' && !favoritesProduct.includes(productId)) {
+            favoritesProduct.push(productId);
+        }
+
+        if (action === 'remove' && favoritesProduct.includes(productId)) {
+            user.favoritesProduct = favoritesProduct.filter(ele => ele !== productId);
+        }
+
+        const response = await user.save();
+        res.status(200).json(new BaseResponse<{ favoriteList: string[] }>().ok({ favoriteList: response.favoritesProduct }))
     } catch (error) {
         console.log("Finding product failed cause: ", error);
         res.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
