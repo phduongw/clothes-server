@@ -32,3 +32,7 @@ export const verifyToken = (req: Request, resp: Response, next: NextFunction)=> 
     }
 }
 
+export const getEmailInToken = (req: Request) => {
+    return (req as any).user.email;
+}
+
