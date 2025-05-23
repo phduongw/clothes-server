@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { ISpecification } from "./specification-product";
 
 export enum ProductType {
     PHONES = 'Phone',
@@ -18,14 +19,15 @@ export enum BrandType {
     APPLE = 'Apple',
 }
 
-export interface ISpecification {
-    cpu: string;
-    coreCpu: number;
-    ram: string;
-    screenSize: string;
-    mainCamera: string;
-    frontCamera: string;
-    batteryCapacity: string;
+export interface IColor {
+    colorCode: string;
+    images: string[];
+    details: [
+        {
+            storage: number;
+            quantity: number;
+        }
+    ];
 }
 
 export interface IProduct {
@@ -35,10 +37,10 @@ export interface IProduct {
     typeProduct: ProductType;
     os: OsType;
     brand: BrandType;
-    specifications?: ISpecification;
-    images: string[];
+    color?: IColor[];
     createdAt?: Date;
     updatedAt?: Date;
+    specification: ISpecification
 }
 
 const productSchema = new Schema<IProduct>({
@@ -69,14 +71,36 @@ const productSchema = new Schema<IProduct>({
         required: true,
         enum: Object.values(BrandType)
     },
-    specifications: {
-        type: Object,
-        required: false
-    },
-    images: {
-        type: [String],
+    specification: {
+        type: Schema.Types.ObjectId,
+        ref: 'Specifications',
         required: true
-    }
+    },
+    color: [
+        {
+            colorCode: {
+                type: String,
+                required: true,
+                unique: true
+            },
+            images: {
+                type: [String],
+                required: true
+            },
+            details: [
+                {
+                    storage: {
+                        type: Number,
+                        required: true
+                    },
+                    quantity: {
+                        type: Number,
+                        default: 0
+                    }
+                }
+            ]
+        }
+    ]
 }, { timestamps: true });
 
 export default model<IProduct>("Products", productSchema);

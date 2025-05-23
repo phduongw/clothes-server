@@ -6,7 +6,7 @@ export interface CreateProductRequest {
     typeProduct: ProductType;
     os: OsType;
     brand: BrandType;
-    specificationsId?: number;
+    specificationsId: string;
     images: Express.Multer.File[];
     createdAt?: Date;
     updatedAt?: Date;

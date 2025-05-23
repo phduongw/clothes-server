@@ -1,14 +1,16 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from "uuid";
 
-import Products, { IProduct } from "../models/products";
+import User from "../models/user";
+import Products, {IColor, IProduct} from "../models/products";
+import Specification, { ISpecification } from '../models/specification-product'
 import { CreateProductRequest } from "./request/CreateProductRequest";
 import { BaseResponse } from "./responses/BaseResponse";
 import { errorCode } from "../common/errorConstants";
 import { bucketName, minioClient } from "../middlewares/minioClient";
-import User from "../models/user";
-import {getEmailInToken} from "../middlewares/jwt";
-import {IAddBatchFavorite} from "./request/AddBatchFavorite";
+import { getEmailInToken } from "../middlewares/jwt";
+import { IAddBatchFavorite } from "./request/AddBatchFavorite";
+import {ICreateColorInfoProductRequest} from "./request/CreateColorInfoProductRequest";
 
 type RequestPagingQuery = {
     page: number;
@@ -22,39 +24,22 @@ type ProductFilter = {
 
 type AllProductQueryFilter = ProductFilter & RequestPagingQuery;
 
-
-
 export const createNewProduct = async (req: Request<{}, {}, CreateProductRequest>, resp: Response) => {
-    const allowsType = ["image/jpeg", "image/png"];
     const body = req.body;
     try {
-        const filesBuffer = req.files as { [fieldName: string]: Express.Multer.File[] };
-
-        const imagesUrl: string[] = [];
-        if (filesBuffer) {
-            for (const file of filesBuffer.images) {
-                if (!allowsType.includes(file.mimetype)) {
-                    resp.status(200).json(new BaseResponse<null>().failed(400, "File type not allow", errorCode.common.fileImageNotAllow));
-                    return;
-                }
-
-                const fileName = `${uuidv4()}-${file.originalname}`
-                await minioClient.putObject(bucketName, fileName, file.buffer, file.size, {
-                    'Content-Type': file.mimetype,
-                });
-
-                imagesUrl.push(fileName);
-            }
+        const specification = await Specification.findById(body.specificationsId);
+        if (!specification) {
+            resp.status(200).json(new BaseResponse<null>().failed(400, "specification doesn't existing", errorCode.product.saveProductFailed));
+            return;
         }
 
         const product = new Products({
             name: body.name,
             price: body.price,
             typeProduct: body.typeProduct,
+            specification: specification,
             os: body.os,
-            brand: body.brand,
-            specificationsId: body.specificationsId,
-            images: imagesUrl,
+            brand: body.brand
         })
 
         const createdProduct = await product.save();
@@ -92,11 +77,6 @@ export const findAll = async (req: Request<{}, {}, {}, AllProductQueryFilter>, r
         const allProduct = await Products.find(condition)
             .skip((page - 1) * size)
             .limit(size);
-        for (const product of allProduct) {
-            for (let i = 0; i < product.images.length; i++) {
-                product.images[i] = await getPresignedUrl(product.images[i]);
-            }
-        }
 
         res.status(200).json(new BaseResponse<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: allProduct, page, size, totalData: total }))
     } catch (error) {
@@ -115,14 +95,7 @@ export const findById = async (req: Request<{ productId: string }, {}, {}>, res:
             return
         }
 
-        const urlImage = await Promise.all(
-            product.images.map(async (image) => await getPresignedUrl(image))
-        );
-
-        res.status(200).json(new BaseResponse<IProduct>().ok({
-            ...product,
-            images: urlImage
-        }))
+        res.status(200).json(new BaseResponse<IProduct>().ok(product))
     } catch (error) {
         console.log("Finding product failed cause: ", error);
         res.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
@@ -196,6 +169,107 @@ export const addBatchFavorite = async (req: Request<{}, {}, IAddBatchFavorite>, 
     } catch (error) {
         console.log("Finding product failed cause: ", error);
         resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+    }
+}
+
+export const createNewSpecifications = async (req: Request<{}, {}, ISpecification>, resp: Response) => {
+    const body = req.body;
+    try {
+        const specification = new Specification(body);
+        const response = await specification.save();
+        if (response) {
+            resp.status(200).json(new BaseResponse<ISpecification>().ok(response));
+            return;
+        }
+
+        resp.status(200).json(new BaseResponse<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
+        return;
+    } catch (error) {
+        console.log("Finding product failed cause: ", error);
+        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+    }
+}
+
+export const getAllSpecification = async (req: Request<{}, {}, {}>, resp: Response)=> {
+    try {
+        const data = await Specification.find();
+        if (data) {
+            resp.status(200).json(new BaseResponse<ISpecification[]>().ok(data));
+            return;
+        }
+
+        resp.status(200).json(new BaseResponse<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
+        return;
+    } catch (error) {
+        console.log("Finding product failed cause: ", error);
+        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
+    }
+}
+
+export const getSpecificationById = async (req: Request<{id: string}, {}, {}>, resp: Response) => {
+    try {
+        const data = await Specification.findById(req.params.id);
+        if (data) {
+            resp.status(200).json(new BaseResponse<ISpecification>().ok(data));
+            return;
+        }
+
+        resp.status(200).json(new BaseResponse<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
+        return;
+    } catch (error) {
+        console.log("Finding product failed cause: ", error);
+        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
+    }
+}
+
+export const addColorProduct = async (req: Request<{}, {}, ICreateColorInfoProductRequest>, resp: Response) => {
+    const body = req.body;
+    try {
+        const product = await Products.findById(body.productId);
+        if (!product) {
+            resp.status(200).json(new BaseResponse<null>().failed(400, "Product doesn't existing", errorCode.product.productNotFound));
+            return;
+        }
+
+        const colorCode = product.color?.find(ele => ele.colorCode === body.colorCode);
+        if (colorCode) {
+            resp.status(200).json(new BaseResponse<null>().failed(400, "Color Code is existing", errorCode.product.productNotFound));
+            return;
+        }
+
+        const details = JSON.parse(body.storage) as [{ storage: number, quantity: number}]
+
+        const allowsType = ["image/jpeg", "image/png"];
+        const filesBuffer = req.files as Express.Multer.File[];
+        const imagesUrl: string[] = [];
+        if (filesBuffer) {
+            for (const file of filesBuffer) {
+                if (!allowsType.includes(file.mimetype)) {
+                    resp.status(200).json(new BaseResponse<null>().failed(400, "File type not allow", errorCode.common.fileImageNotAllow));
+                    return;
+                }
+
+                const fileName = `${uuidv4()}-${file.originalname}`
+                await minioClient.putObject(bucketName, fileName, file.buffer, file.size, {
+                    'Content-Type': file.mimetype,
+                });
+
+                imagesUrl.push(fileName);
+            }
+        }
+
+        const color: IColor = {
+            colorCode: body.colorCode,
+            details: details,
+            images: imagesUrl
+        }
+
+        product.color?.push(color);
+        product.save();
+        resp.status(200).json(new BaseResponse<null>().ok(null));
+    } catch (error) {
+        console.log("Finding product failed cause: ", error);
+        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
     }
 }
 
