@@ -1,11 +1,13 @@
 import * as Minio from "minio";
+import dotenv from 'dotenv';
 
+dotenv.config();
 export const minioClient = new Minio.Client({
-    endPoint: 'localhost',
-    port: 9000,
+    endPoint: process.env.MINIO_IP!,
+    port: parseInt(process.env.MINIO_PORT!),
     useSSL: false,
-    accessKey: 'WWgdq95P87nmTMRgWE33',
-    secretKey: '1MnMhWDsC3WULRfDv2t8xFn52gt8aW7AZW4ph065'
+    accessKey: process.env.ACCESS_KEY!,
+    secretKey: process.env.SECRET_KEY!,
 });
 
 export const bucketName = 'e-commerce';

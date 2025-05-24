@@ -73,10 +73,23 @@ export const findAll = async (req: Request<{}, {}, {}, AllProductQueryFilter>, r
             default:
                 break;
         }
+
+
+
         const total = await Products.countDocuments(condition);
         const allProduct = await Products.find(condition)
             .skip((page - 1) * size)
             .limit(size);
+
+        for (const product of allProduct) {
+            if (product.color) {
+                for (const color of product.color) {
+                    for (let i = 0; i < color.images.length; i++) {
+                        color.images[i] = await getPresignedUrl(color.images[i]);
+                    }
+                }
+            }
+        }
 
         res.status(200).json(new BaseResponse<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: allProduct, page, size, totalData: total }))
     } catch (error) {
@@ -93,6 +106,14 @@ export const findById = async (req: Request<{ productId: string }, {}, {}>, res:
             console.log("Cannot find product with id: " + id);
             res.status(200).json(new BaseResponse<null>().failed(404, "Product doesn't existing", errorCode.product.productNotFound));
             return
+        }
+
+        if (product.color) {
+            for (const color of product.color) {
+                for (let i = 0; i < color.images.length; i++) {
+                    color.images[i] = await getPresignedUrl(color.images[i]);
+                }
+            }
         }
 
         res.status(200).json(new BaseResponse<IProduct>().ok(product))
