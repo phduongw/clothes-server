@@ -101,7 +101,7 @@ export const findAll = async (req: Request<{}, {}, {}, AllProductQueryFilter>, r
 export const findById = async (req: Request<{ productId: string }, {}, {}>, res: Response) => {
     const id = req.params.productId;
     try {
-        const product = await Products.findById(id).lean();
+        const product = await Products.findById(id).lean().populate('specification');
         if (!product) {
             console.log("Cannot find product with id: " + id);
             res.status(200).json(new BaseResponse<null>().failed(404, "Product doesn't existing", errorCode.product.productNotFound));
