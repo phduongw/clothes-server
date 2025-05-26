@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import { ISpecification } from "./specification-product";
+import {IReview} from "./review";
 
 export enum ProductType {
     PHONES = 'Phone',
@@ -30,6 +31,14 @@ export interface IColor {
     ];
 }
 
+export interface IReviewProduct {
+    _1: IReview[];
+    _2: IReview[];
+    _3: IReview[];
+    _4: IReview[];
+    _5: IReview[];
+}
+
 export interface IProduct {
     name: string;
     active: boolean;
@@ -41,6 +50,7 @@ export interface IProduct {
     createdAt?: Date;
     updatedAt?: Date;
     specification: ISpecification
+    reviews: IReviewProduct;
 }
 
 const productSchema = new Schema<IProduct>({
@@ -75,6 +85,33 @@ const productSchema = new Schema<IProduct>({
         type: Schema.Types.ObjectId,
         ref: 'Specifications',
         required: true
+    },
+    reviews: {
+        _1: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Reviews',
+            default: []
+        }],
+        _2: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Reviews',
+            default: []
+        }],
+        _3: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Reviews',
+            default: []
+        }],
+        _4: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Reviews',
+            default: []
+        }],
+        _5: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Reviews',
+            default: []
+        }],
     },
     color: [
         {

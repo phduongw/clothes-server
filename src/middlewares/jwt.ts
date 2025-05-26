@@ -36,3 +36,7 @@ export const getEmailInToken = (req: Request) => {
     return (req as any).user.email;
 }
 
+export const getFullNameInToken = (req: Request) => {
+    return (req as any).user.fullName;
+}
+
