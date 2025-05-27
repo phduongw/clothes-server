@@ -186,6 +186,7 @@ export const addBatchFavorite = async (req: Request<{}, {}, IAddBatchFavorite>, 
 
         if (!products.length) {
             resp.status(200).json(new BaseResponse<{favoriteList: string[]}>().ok({ favoriteList: user.favoritesProduct }));
+            return;
         }
 
         for (const product of products) {
@@ -194,6 +195,7 @@ export const addBatchFavorite = async (req: Request<{}, {}, IAddBatchFavorite>, 
 
         const savedUser = await user.save();
         resp.status(200).json(new BaseResponse<{favoriteList: string[]}>().ok({ favoriteList: savedUser.favoritesProduct }));
+        return;
     } catch (error) {
         console.log("Finding product failed cause: ", error);
         resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
