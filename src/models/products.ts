@@ -51,6 +51,7 @@ export interface IProduct {
     updatedAt?: Date;
     specification: ISpecification
     reviews: IReviewProduct;
+    discount: number;
 }
 
 const productSchema = new Schema<IProduct>({
@@ -137,7 +138,11 @@ const productSchema = new Schema<IProduct>({
                 }
             ]
         }
-    ]
+    ],
+    discount: {
+        type: Number,
+        default: 0
+    }
 }, { timestamps: true });
 
 export default model<IProduct>("Products", productSchema);

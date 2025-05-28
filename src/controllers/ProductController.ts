@@ -19,7 +19,7 @@ type RequestPagingQuery = {
 
 
 type ProductFilter = {
-    productFilter: 'best-seller' | 'new-arrival' | 'featured-products' | 'all';
+    productFilter: 'best-seller' | 'new-arrival' | 'featured-products' | 'all' | 'discount';
 }
 
 type AllProductQueryFilter = ProductFilter & RequestPagingQuery;
@@ -70,11 +70,15 @@ export const findAll = async (req: Request<{}, {}, {}, AllProductQueryFilter>, r
                 };
                 break;
             }
+            case 'discount': {
+                condition.discount = {
+                    $gt: 0
+                }
+                break;
+            }
             default:
                 break;
         }
-
-
 
         const total = await Products.countDocuments(condition);
         const allProduct = await Products.find(condition)
@@ -102,7 +106,7 @@ export const findById = async (req: Request<{ productId: string }, {}, {}>, res:
     const id = req.params.productId;
     try {
         const product = await Products.findById(id).lean().populate([
-            {path: 'specification'},
+            { path: 'specification' },
             { path: 'reviews._1' },
             { path: 'reviews._2' },
             { path: 'reviews._3' },
