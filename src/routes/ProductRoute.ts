@@ -4,7 +4,7 @@ import {upload} from "../middlewares/uploadFile";
 import {
     addBatchFavorite, addColorProduct,
     createNewProduct, createNewSpecifications,
-    findAll,
+    findAll, findAllByCatalog,
     findById, getAllSpecification, getSpecificationById,
     reviseFavoriteList
 } from "../controllers/ProductController";
@@ -21,6 +21,7 @@ router.post('/add-color', upload.array('images', 5), verifyToken, addColorProduc
 
 router.get('/', findAll);
 router.get('/specification', verifyToken, getAllSpecification);
+router.get('/catalog', findAllByCatalog)
 router.get('/specification/:id', verifyToken, getSpecificationById);
 router.get('/:productId', findById);
 

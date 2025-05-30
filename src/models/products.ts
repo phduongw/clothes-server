@@ -6,7 +6,8 @@ export enum ProductType {
     PHONES = 'Phone',
     LAPTOP = 'Laptop',
     HEADPHONE = 'Headphone',
-    WATCH = 'Watch'
+    WATCH = 'Watch',
+    CAMERA = 'Camera',
 }
 
 export enum OsType {

@@ -1,7 +1,9 @@
 import { HydratedDocument } from "mongoose";
 
 import { IReview } from "../models/review";
-import { IProduct } from "../models/products";
+import Products, {IProduct, ProductType} from "../models/products";
+import {RequestPagingQuery} from "../controllers/request/PagingRequest";
+import {getPresignedUrl} from "../controllers/ProductController";
 
 export const addReviews = async (review: IReview, product: HydratedDocument<IProduct>) => {
     addReviewByRating(review, product);
@@ -11,6 +13,60 @@ export const addReviews = async (review: IReview, product: HydratedDocument<IPro
         console.log("Adding review failed cause: ", error);
         throw error;
     }
+}
+
+export const findAllByProductType = async (request: RequestPagingQuery & { catalog: string }) => {
+    const productType = getProductType(request.catalog);
+    if (!productType) {
+        throw new Error("Product type not found.");
+    }
+
+    const condition = {
+        typeProduct: productType,
+    };
+
+    try {
+        const total = await Products.countDocuments(condition);
+        const items = await Products
+            .find(condition)
+            .skip((request.page - 1) * request.size)
+            .limit(request.size);
+
+        if (items) {
+            await generateUrlImage(items)
+
+            return {
+                items,
+                page: request.page,
+                size: request.size,
+                total,
+            }
+        }
+
+        return {
+            items: [],
+            page: request.page,
+            size: request.size,
+            total: 0,
+        }
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+const generateUrlImage = async (items: IProduct[]) => {
+    for (const product of items) {
+        if (product.color) {
+            for (const color of product.color) {
+                for (let i = 0; i < color.images.length; i++) {
+                    color.images[i] = await getPresignedUrl(color.images[i]);
+                }
+            }
+        }
+    }
+
+    return items;
 }
 
 const addReviewByRating = (review: IReview, product: IProduct) => {
@@ -35,4 +91,8 @@ const addReviewByRating = (review: IReview, product: IProduct) => {
             product.reviews._5.push(review);
         }
     }
+}
+
+const getProductType = (catalog: string) => {
+    return Object.values(ProductType).find(value => value === catalog);
 }

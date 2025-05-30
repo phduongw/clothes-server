@@ -11,11 +11,9 @@ import { bucketName, minioClient } from "../middlewares/minioClient";
 import { getEmailInToken } from "../middlewares/jwt";
 import { IAddBatchFavorite } from "./request/AddBatchFavorite";
 import {ICreateColorInfoProductRequest} from "./request/CreateColorInfoProductRequest";
-
-type RequestPagingQuery = {
-    page: number;
-    size: number;
-}
+import {RequestPagingQuery} from "./request/PagingRequest";
+import {findAllByProductType} from "../services/product.service";
+import {PagingResponse} from "./responses/PagingResponse";
 
 
 type ProductFilter = {
@@ -171,6 +169,16 @@ export const reviseFavoriteList = async (req: Request<{ productId: string }, {},
     }
 }
 
+export const findAllByCatalog = async (req: Request<{}, {}, {}, RequestPagingQuery & { catalog: string }>, resp: Response) => {
+    try {
+        const data = await findAllByProductType(req.query);
+        resp.status(200).json(new BaseResponse<PagingResponse & { items: IProduct[] }>().ok(data));
+    } catch (error) {
+        console.log("Finding all products type", error);
+        resp.status(200).json(new BaseResponse<PagingResponse & { items: IProduct[] }>().ok({ items: [], page: req.query.page, size: req.query.size, total: 0 }));
+    }
+}
+
 export const addBatchFavorite = async (req: Request<{}, {}, IAddBatchFavorite>, resp: Response) => {
     const email = getEmailInToken(req);
     const body = req.body;
@@ -307,6 +315,6 @@ export const addColorProduct = async (req: Request<{}, {}, ICreateColorInfoProdu
     }
 }
 
-async function getPresignedUrl(fileName: string): Promise<string> {
+export async function getPresignedUrl(fileName: string): Promise<string> {
     return await minioClient.presignedGetObject(bucketName, fileName,  7 * 24 * 60 * 60); // URL tồn tại 24h
 }
