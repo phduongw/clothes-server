@@ -1,19 +1,19 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from "uuid";
 
-import User from "../models/user";
-import Products, {IColor, IProduct} from "../models/products";
-import Specification, { ISpecification } from '../models/specification-product'
-import { CreateProductRequest } from "./request/CreateProductRequest";
-import { BaseResponse } from "./responses/BaseResponse";
+import User from "../models/user.schema";
+import Products, {IColor, IProduct} from "../models/products.schema";
+import Specification, { ISpecification } from '../models/specification-product.schema'
+import { CreateProductRequestDto } from "./request/CreateProductRequest.dto";
+import { BaseResponseDto } from "./responses/BaseResponse.dto";
 import { errorCode } from "../common/errorConstants";
-import { bucketName, minioClient } from "../middlewares/minioClient";
-import { getEmailInToken } from "../middlewares/jwt";
-import { IAddBatchFavorite } from "./request/AddBatchFavorite";
-import {ICreateColorInfoProductRequest} from "./request/CreateColorInfoProductRequest";
-import {RequestPagingQuery} from "./request/PagingRequest";
+import { bucketName, minioClientMiddleware } from "../middlewares/minioClient.middleware";
+import { getEmailInToken } from "../middlewares/jwt.middleware";
+import { IAddBatchFavorite } from "./request/AddBatchFavorite.dto";
+import {ICreateColorInfoProductRequest} from "./request/CreateColorInfoProductRequest.dto";
+import {RequestPagingQuery} from "./request/PagingRequest.dto";
 import {findAllByProductType} from "../services/product.service";
-import {PagingResponse} from "./responses/PagingResponse";
+import {PagingResponseDto} from "./responses/PagingResponse.dto";
 
 
 type ProductFilter = {
@@ -22,12 +22,12 @@ type ProductFilter = {
 
 type AllProductQueryFilter = ProductFilter & RequestPagingQuery;
 
-export const createNewProduct = async (req: Request<{}, {}, CreateProductRequest>, resp: Response) => {
+export const createNewProduct = async (req: Request<{}, {}, CreateProductRequestDto>, resp: Response) => {
     const body = req.body;
     try {
         const specification = await Specification.findById(body.specificationsId);
         if (!specification) {
-            resp.status(200).json(new BaseResponse<null>().failed(400, "specification doesn't existing", errorCode.product.saveProductFailed));
+            resp.status(200).json(new BaseResponseDto<null>().failed(400, "specification doesn't existing", errorCode.product.saveProductFailed));
             return;
         }
 
@@ -42,14 +42,14 @@ export const createNewProduct = async (req: Request<{}, {}, CreateProductRequest
 
         const createdProduct = await product.save();
         if (!createdProduct) {
-            resp.status(200).json(new BaseResponse<null>().failed(400, "Failed to create product", errorCode.product.saveProductFailed));
+            resp.status(200).json(new BaseResponseDto<null>().failed(400, "Failed to create product", errorCode.product.saveProductFailed));
             return;
         }
 
-        resp.status(200).json(new BaseResponse<IProduct>().ok(createdProduct))
+        resp.status(200).json(new BaseResponseDto<IProduct>().ok(createdProduct))
     } catch (error) {
         console.log("Creating product failed cause: ", error);
-        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+        resp.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
     }
 }
 
@@ -93,10 +93,10 @@ export const findAll = async (req: Request<{}, {}, {}, AllProductQueryFilter>, r
             }
         }
 
-        res.status(200).json(new BaseResponse<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: allProduct, page, size, totalData: total }))
+        res.status(200).json(new BaseResponseDto<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: allProduct, page, size, totalData: total }))
     } catch (error) {
         console.log("Finding all products failed cause: ", error);
-        res.status(200).json(new BaseResponse<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: [], page, size, totalData: 0 }))
+        res.status(200).json(new BaseResponseDto<{ items: IProduct[]; page: number; size: number, totalData: number }>().ok({ items: [], page, size, totalData: 0 }))
     }
 }
 
@@ -113,7 +113,7 @@ export const findById = async (req: Request<{ productId: string }, {}, {}>, res:
         ]);
         if (!product) {
             console.log("Cannot find product with id: " + id);
-            res.status(200).json(new BaseResponse<null>().failed(404, "Product doesn't existing", errorCode.product.productNotFound));
+            res.status(200).json(new BaseResponseDto<null>().failed(404, "Product doesn't existing", errorCode.product.productNotFound));
             return
         }
 
@@ -125,10 +125,10 @@ export const findById = async (req: Request<{ productId: string }, {}, {}>, res:
             }
         }
 
-        res.status(200).json(new BaseResponse<IProduct>().ok(product))
+        res.status(200).json(new BaseResponseDto<IProduct>().ok(product))
     } catch (error) {
         console.log("Finding product failed cause: ", error);
-        res.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+        res.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
     }
 }
 
@@ -140,13 +140,13 @@ export const reviseFavoriteList = async (req: Request<{ productId: string }, {},
         const product = await Products.exists({_id: productId})
         if (!product) {
             console.log("Cannot find product with id: " + productId);
-            res.status(200).json(new BaseResponse<null>().failed(404, "Product doesn't existing", errorCode.product.productNotFound));
+            res.status(200).json(new BaseResponseDto<null>().failed(404, "Product doesn't existing", errorCode.product.productNotFound));
             return
         }
 
         const user = await User.findOne({ email });
         if (!user) {
-            res.status(200).json(new BaseResponse<null>().failed(404, "User doesn't existing", errorCode.auth.emailExist));
+            res.status(200).json(new BaseResponseDto<null>().failed(404, "User doesn't existing", errorCode.auth.emailExist));
             return;
         }
 
@@ -162,20 +162,20 @@ export const reviseFavoriteList = async (req: Request<{ productId: string }, {},
         }
 
         const response = await user.save();
-        res.status(200).json(new BaseResponse<{ favoriteList: string[] }>().ok({ favoriteList: response.favoritesProduct }))
+        res.status(200).json(new BaseResponseDto<{ favoriteList: string[] }>().ok({ favoriteList: response.favoritesProduct }))
     } catch (error) {
         console.log("Finding product failed cause: ", error);
-        res.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+        res.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
     }
 }
 
 export const findAllByCatalog = async (req: Request<{}, {}, {}, RequestPagingQuery & { catalog: string }>, resp: Response) => {
     try {
         const data = await findAllByProductType(req.query);
-        resp.status(200).json(new BaseResponse<PagingResponse & { items: IProduct[] }>().ok(data));
+        resp.status(200).json(new BaseResponseDto<PagingResponseDto & { items: IProduct[] }>().ok(data));
     } catch (error) {
         console.log("Finding all products type", error);
-        resp.status(200).json(new BaseResponse<PagingResponse & { items: IProduct[] }>().ok({ items: [], page: req.query.page, size: req.query.size, total: 0 }));
+        resp.status(200).json(new BaseResponseDto<PagingResponseDto & { items: IProduct[] }>().ok({ items: [], page: req.query.page, size: req.query.size, total: 0 }));
     }
 }
 
@@ -186,7 +186,7 @@ export const addBatchFavorite = async (req: Request<{}, {}, IAddBatchFavorite>, 
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            resp.status(200).json(new BaseResponse<null>().failed(404, "User doesn't existing", errorCode.auth.emailExist));
+            resp.status(200).json(new BaseResponseDto<null>().failed(404, "User doesn't existing", errorCode.auth.emailExist));
             return;
         }
 
@@ -197,7 +197,7 @@ export const addBatchFavorite = async (req: Request<{}, {}, IAddBatchFavorite>, 
         });
 
         if (!products.length) {
-            resp.status(200).json(new BaseResponse<{favoriteList: string[]}>().ok({ favoriteList: user.favoritesProduct }));
+            resp.status(200).json(new BaseResponseDto<{favoriteList: string[]}>().ok({ favoriteList: user.favoritesProduct }));
             return;
         }
 
@@ -206,11 +206,11 @@ export const addBatchFavorite = async (req: Request<{}, {}, IAddBatchFavorite>, 
         }
 
         const savedUser = await user.save();
-        resp.status(200).json(new BaseResponse<{favoriteList: string[]}>().ok({ favoriteList: savedUser.favoritesProduct }));
+        resp.status(200).json(new BaseResponseDto<{favoriteList: string[]}>().ok({ favoriteList: savedUser.favoritesProduct }));
         return;
     } catch (error) {
         console.log("Finding product failed cause: ", error);
-        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+        resp.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
     }
 }
 
@@ -220,15 +220,15 @@ export const createNewSpecifications = async (req: Request<{}, {}, ISpecificatio
         const specification = new Specification(body);
         const response = await specification.save();
         if (response) {
-            resp.status(200).json(new BaseResponse<ISpecification>().ok(response));
+            resp.status(200).json(new BaseResponseDto<ISpecification>().ok(response));
             return;
         }
 
-        resp.status(200).json(new BaseResponse<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
+        resp.status(200).json(new BaseResponseDto<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
         return;
     } catch (error) {
         console.log("Finding product failed cause: ", error);
-        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
+        resp.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown))
     }
 }
 
@@ -236,15 +236,15 @@ export const getAllSpecification = async (req: Request<{}, {}, {}>, resp: Respon
     try {
         const data = await Specification.find();
         if (data) {
-            resp.status(200).json(new BaseResponse<ISpecification[]>().ok(data));
+            resp.status(200).json(new BaseResponseDto<ISpecification[]>().ok(data));
             return;
         }
 
-        resp.status(200).json(new BaseResponse<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
+        resp.status(200).json(new BaseResponseDto<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
         return;
     } catch (error) {
         console.log("Finding product failed cause: ", error);
-        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
+        resp.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
     }
 }
 
@@ -252,15 +252,15 @@ export const getSpecificationById = async (req: Request<{id: string}, {}, {}>, r
     try {
         const data = await Specification.findById(req.params.id);
         if (data) {
-            resp.status(200).json(new BaseResponse<ISpecification>().ok(data));
+            resp.status(200).json(new BaseResponseDto<ISpecification>().ok(data));
             return;
         }
 
-        resp.status(200).json(new BaseResponse<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
+        resp.status(200).json(new BaseResponseDto<ISpecification>().failed(400, 'Creating new specification failed', errorCode.common.serverDown));
         return;
     } catch (error) {
         console.log("Finding product failed cause: ", error);
-        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
+        resp.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
     }
 }
 
@@ -269,13 +269,13 @@ export const addColorProduct = async (req: Request<{}, {}, ICreateColorInfoProdu
     try {
         const product = await Products.findById(body.productId);
         if (!product) {
-            resp.status(200).json(new BaseResponse<null>().failed(400, "Product doesn't existing", errorCode.product.productNotFound));
+            resp.status(200).json(new BaseResponseDto<null>().failed(400, "Product doesn't existing", errorCode.product.productNotFound));
             return;
         }
 
         const colorCode = product.color?.find(ele => ele.colorCode === body.colorCode);
         if (colorCode) {
-            resp.status(200).json(new BaseResponse<null>().failed(400, "Color Code is existing", errorCode.product.productNotFound));
+            resp.status(200).json(new BaseResponseDto<null>().failed(400, "Color Code is existing", errorCode.product.productNotFound));
             return;
         }
 
@@ -287,12 +287,12 @@ export const addColorProduct = async (req: Request<{}, {}, ICreateColorInfoProdu
         if (filesBuffer) {
             for (const file of filesBuffer) {
                 if (!allowsType.includes(file.mimetype)) {
-                    resp.status(200).json(new BaseResponse<null>().failed(400, "File type not allow", errorCode.common.fileImageNotAllow));
+                    resp.status(200).json(new BaseResponseDto<null>().failed(400, "File type not allow", errorCode.common.fileImageNotAllow));
                     return;
                 }
 
                 const fileName = `${uuidv4()}-${file.originalname}`
-                await minioClient.putObject(bucketName, fileName, file.buffer, file.size, {
+                await minioClientMiddleware.putObject(bucketName, fileName, file.buffer, file.size, {
                     'Content-Type': file.mimetype,
                 });
 
@@ -308,13 +308,13 @@ export const addColorProduct = async (req: Request<{}, {}, ICreateColorInfoProdu
 
         product.color?.push(color);
         product.save();
-        resp.status(200).json(new BaseResponse<null>().ok(null));
+        resp.status(200).json(new BaseResponseDto<null>().ok(null));
     } catch (error) {
         console.log("Finding product failed cause: ", error);
-        resp.status(200).json(new BaseResponse<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
+        resp.status(200).json(new BaseResponseDto<null>().failed(500, "Internal Server Error", errorCode.common.serverDown));
     }
 }
 
 export async function getPresignedUrl(fileName: string): Promise<string> {
-    return await minioClient.presignedGetObject(bucketName, fileName,  7 * 24 * 60 * 60); // URL tồn tại 24h
+    return await minioClientMiddleware.presignedGetObject(bucketName, fileName,  7 * 24 * 60 * 60); // URL tồn tại 24h
 }

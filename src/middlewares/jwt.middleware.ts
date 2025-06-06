@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import jwt from 'jsonwebtoken';
 
 import config from '../config/config';
-import { IUser } from "../models/user";
-import {BaseResponse} from "../controllers/responses/BaseResponse";
+import { IUser } from "../models/user.schema";
+import {BaseResponseDto} from "../controllers/responses/BaseResponse.dto";
 import {errorCode} from "../common/errorConstants";
 
 export const generateToken = (user: IUser): string => {
@@ -20,7 +20,7 @@ export const verifyToken = (req: Request, resp: Response, next: NextFunction)=> 
         const token = authHeader.split(' ')[1];
         jwt.verify(token, config.clientSecret, (err: any, user: any) => {
             if (err) {
-                return resp.status(401).json(new BaseResponse().failed(401, "Token invalid", errorCode.auth.tokenInvalid));
+                return resp.status(401).json(new BaseResponseDto().failed(401, "Token invalid", errorCode.auth.tokenInvalid));
             }
 
             (req as any).user = user;
@@ -28,7 +28,7 @@ export const verifyToken = (req: Request, resp: Response, next: NextFunction)=> 
             next();
         });
     } else {
-        resp.status(401).json(new BaseResponse().failed(401, "Unauthorized", errorCode.auth.authenticatedFailed));
+        resp.status(401).json(new BaseResponseDto().failed(401, "Unauthorized", errorCode.auth.authenticatedFailed));
     }
 }
 

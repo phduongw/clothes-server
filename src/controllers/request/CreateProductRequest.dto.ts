@@ -1,6 +1,6 @@
-import {BrandType, OsType, ProductType} from "../../models/products";
+import {BrandType, OsType, ProductType} from "../../models/products.schema";
 
-export interface CreateProductRequest {
+export interface CreateProductRequestDto {
     name: string;
     price: number;
     typeProduct: ProductType;

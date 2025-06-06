@@ -1,9 +1,9 @@
 import { HydratedDocument } from "mongoose";
 
-import { IReview } from "../models/review";
-import Products, {IProduct, ProductType} from "../models/products";
-import {RequestPagingQuery} from "../controllers/request/PagingRequest";
-import {getPresignedUrl} from "../controllers/ProductController";
+import { IReview } from "../models/review.schema";
+import Products, {IProduct, ProductType} from "../models/products.schema";
+import {RequestPagingQuery} from "../controllers/request/PagingRequest.dto";
+import {getPresignedUrl} from "../controllers/product.controller";
 
 export const addReviews = async (review: IReview, product: HydratedDocument<IProduct>) => {
     addReviewByRating(review, product);

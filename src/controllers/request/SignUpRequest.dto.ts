@@ -1,4 +1,4 @@
-import { Gender } from "../../models/user";
+import { Gender } from "../../models/user.schema";
 
 export interface ISignUpRequest {
     fullName: string;

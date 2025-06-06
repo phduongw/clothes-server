@@ -8,7 +8,7 @@ const storage = multer.memoryStorage();
 export const upload = multer({storage: storage});
 
 // Middleware validation với TypeScript
-// export const fileValidation = (req: Request<{}, {}, CreateProductRequest>, res: Response, next: NextFunction) => {
+// export const fileValidation = (req: Request<{}, {}, CreateProductRequestDto>, res: Response, next: NextFunction) => {
 //     const body = req.body;
 //
 //     const images = body.images;

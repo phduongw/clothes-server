@@ -1,7 +1,7 @@
-import {generateToken, verifyToken} from '../src/middlewares/jwt';
+import {generateToken, verifyToken} from '../src/middlewares/jwt.middleware';
 import {createRequest, createResponse} from 'node-mocks-http';
-import {BaseResponse} from "../src/controllers/responses/BaseResponse";
-import {Gender, IUser, Role} from "../src/models/user";
+import {BaseResponseDto} from "../src/controllers/responses/BaseResponse.dto";
+import {Gender, IUser, Role} from "../src/models/user.schema";
 
 describe('auth-middleware', () => {
     it("Authorization Header is empty", () => {
@@ -10,7 +10,7 @@ describe('auth-middleware', () => {
         const next = jest.fn();
 
         verifyToken(req, resp, next);
-        const responseData = resp._getJSONData() as BaseResponse<null>;
+        const responseData = resp._getJSONData() as BaseResponseDto<null>;
 
         expect(resp.statusCode).toBe(401);
         expect(responseData.status.code).toBe(401)
@@ -28,7 +28,7 @@ describe('auth-middleware', () => {
         const next = jest.fn();
 
         verifyToken(req, resp, next);
-        const responseData = resp._getJSONData() as BaseResponse<null>;
+        const responseData = resp._getJSONData() as BaseResponseDto<null>;
 
         expect(resp.statusCode).toBe(401);
         expect(responseData.status.code).toBe(401)
@@ -46,6 +46,7 @@ describe('auth-middleware', () => {
             password: "duongExtension@",
             createdAt: new Date(),
             updatedAt: new Date(),
+            favoritesProduct: []
         }
 
         const token = generateToken(user);

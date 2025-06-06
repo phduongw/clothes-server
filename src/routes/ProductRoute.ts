@@ -1,14 +1,14 @@
 import {Router} from "express";
 
-import {upload} from "../middlewares/uploadFile";
+import {upload} from "../middlewares/uploadFile.middleware";
 import {
     addBatchFavorite, addColorProduct,
     createNewProduct, createNewSpecifications,
     findAll, findAllByCatalog,
     findById, getAllSpecification, getSpecificationById,
     reviseFavoriteList
-} from "../controllers/ProductController";
-import {verifyToken} from "../middlewares/jwt";
+} from "../controllers/product.controller";
+import {verifyToken} from "../middlewares/jwt.middleware";
 
 const router = Router();
 

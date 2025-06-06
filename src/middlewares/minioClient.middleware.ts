@@ -2,7 +2,7 @@ import * as Minio from "minio";
 import dotenv from 'dotenv';
 
 dotenv.config();
-export const minioClient = new Minio.Client({
+export const minioClientMiddleware = new Minio.Client({
     endPoint: process.env.MINIO_IP!,
     port: parseInt(process.env.MINIO_PORT!),
     useSSL: false,
@@ -15,9 +15,9 @@ export const bucketName = 'e-commerce';
 
 export const checkExistBucket = async (bucket: string) => {
     try {
-        const exists = await minioClient.bucketExists(bucket)
+        const exists = await minioClientMiddleware.bucketExists(bucket)
         if (!exists) {
-            await minioClient.makeBucket(bucket)
+            await minioClientMiddleware.makeBucket(bucket)
             console.log("Creating new Bucket successfully")
         } else {
             console.log("Bucket already exists")

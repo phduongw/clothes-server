@@ -1,9 +1,9 @@
 import express from 'express';
 import bodyParser from "body-parser";
 
-import { errorHandler } from "./middlewares/errorHandler";
+import { errorHandlerMiddleware } from "./middlewares/errorHandler.middleware";
 import { reviewRoute, productRoute, authRoute } from './routes/index.routes';
-import {bucketName, checkExistBucket} from "./middlewares/minioClient";
+import {bucketName, checkExistBucket} from "./middlewares/minioClient.middleware";
 
 const app = express();
 app.use((req, res, next) => {
@@ -18,7 +18,7 @@ app.use(express.json());
 app.use('/auth', authRoute);
 app.use('/product', productRoute);
 app.use('/review', reviewRoute);
-app.use(errorHandler);
+app.use(errorHandlerMiddleware);
 
 
 checkExistBucket(bucketName).then(() => {

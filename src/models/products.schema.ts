@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
-import { ISpecification } from "./specification-product";
-import {IReview} from "./review";
+import { ISpecification } from "./specification-product.schema";
+import {IReview} from "./review.schema";
 
 export enum ProductType {
     PHONES = 'Phone',

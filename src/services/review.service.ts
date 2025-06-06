@@ -1,6 +1,6 @@
 
-import { ICreatReviewRequest } from "../controllers/request/CreatReviewRequest";
-import Review from "../models/review";
+import { ICreatReviewRequest } from "../controllers/request/CreatReviewRequest.dto";
+import Review from "../models/review.schema";
 
 
 export const createReview = async (request: ICreatReviewRequest, ownerReview: string) => {

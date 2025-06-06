@@ -6,11 +6,11 @@ export interface IBaseResponse<T> {
         timestamp: string;
     },
     data?: T;
-    ok(data: T): BaseResponse<T>;
-    failed(statusCode: number, message: string, errorCode: string): BaseResponse<T>;
+    ok(data: T): BaseResponseDto<T>;
+    failed(statusCode: number, message: string, errorCode: string): BaseResponseDto<T>;
 }
 
-export class BaseResponse<T> implements IBaseResponse<T>{
+export class BaseResponseDto<T> implements IBaseResponse<T>{
     status: {
         code: number;
         message: string | string [];

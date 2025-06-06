@@ -1,16 +1,16 @@
-import Users, {Gender, IUser, Role} from "../../src/models/user";
+import Users, {Gender, IUser, Role} from "../../src/models/user.schema";
 import {createRequest, createResponse} from "node-mocks-http";
-import {ISignUpRequest} from "../../src/controllers/request/SignUpRequest";
-import {login, signup} from "../../src/controllers/AuthController";
-import {BaseResponse} from "../../src/controllers/responses/BaseResponse";
+import {ISignUpRequest} from "../../src/controllers/request/SignUpRequest.dto";
+import {login, signup} from "../../src/controllers/auth.controller";
+import {BaseResponseDto} from "../../src/controllers/responses/BaseResponse.dto";
 import {compare, hash} from "bcryptjs";
-import {generateToken} from "../../src/middlewares/jwt";
-import {ISignInRequest} from "../../src/controllers/request/SignInRequest";
-import {ILoginResponse} from "../../src/controllers/responses/LoginResponse";
+import {generateToken} from "../../src/middlewares/jwt.middleware";
+import {ISignInRequest} from "../../src/controllers/request/SignInRequest.dto";
+import {ILoginResponse} from "../../src/controllers/responses/LoginResponse.dto";
 
 
 jest.mock("bcryptjs");
-jest.mock('../../src/models/user');
+jest.mock('../../src/models/user.schema');
 
 describe("signup user", () => {
     const mockRequest = (body: ISignUpRequest) => createRequest({
@@ -29,6 +29,7 @@ describe("signup user", () => {
         password: "duongExtension@110299",
         createdAt: new Date(),
         updatedAt: new Date(),
+        favoritesProduct: []
     }
 
     afterEach(() => {
@@ -50,7 +51,7 @@ describe("signup user", () => {
         const response = mockResponse();
 
         await signup(req, response);
-        const responseData = response._getJSONData() as BaseResponse<null>;
+        const responseData = response._getJSONData() as BaseResponseDto<null>;
 
         expect(response.statusCode).toBe(200);
         expect(responseData.status.code).toBe(400);
@@ -72,7 +73,7 @@ describe("signup user", () => {
         const response = mockResponse();
 
         await signup(req, response);
-        const responseData = response._getJSONData() as BaseResponse<null>;
+        const responseData = response._getJSONData() as BaseResponseDto<null>;
 
         expect(response.statusCode).toBe(200);
         expect(responseData.status.code).toBe(400);
@@ -101,7 +102,7 @@ describe("signup user", () => {
         const response = mockResponse();
 
         await signup(req, response);
-        const responseData = response._getJSONData() as BaseResponse<null>;
+        const responseData = response._getJSONData() as BaseResponseDto<null>;
 
         expect(response.statusCode).toBe(200);
         expect(hashPasswordFn).not.toHaveBeenCalled();
@@ -128,7 +129,7 @@ describe("signup user", () => {
         }));
 
         await signup(req, response);
-        const responseData = response._getJSONData() as BaseResponse<null>;
+        const responseData = response._getJSONData() as BaseResponseDto<null>;
 
         expect(hash).toHaveBeenCalled();
         expect(mockSave).not.toHaveBeenCalled();
@@ -156,7 +157,7 @@ describe("signup user", () => {
             }))
 
         await signup(req, resp);
-        const respData = resp._getJSONData() as BaseResponse<null>;
+        const respData = resp._getJSONData() as BaseResponseDto<null>;
 
         expect(hash).toHaveBeenCalled();
         expect(saveMock).toHaveBeenCalled();
@@ -187,7 +188,8 @@ describe("signup user", () => {
             gender: Gender.MALE,
             phoneNumber: '0989211621',
             role: Role.GUEST,
-            active: true
+            active: true,
+            favoritesProduct: []
         };
         const mockSave = jest.fn().mockResolvedValueOnce(createdUser);
         (Users as unknown as jest.Mock).mockImplementation(() => ({
@@ -195,7 +197,7 @@ describe("signup user", () => {
         }));
 
         await signup(req, resp);
-        const responseData = resp._getJSONData() as BaseResponse<IUser>;
+        const responseData = resp._getJSONData() as BaseResponseDto<IUser>;
 
         expect(hash).toHaveBeenCalled();
         expect(mockSave).toHaveBeenCalled();
@@ -228,7 +230,8 @@ describe('Login user', () => {
         gender: Gender.MALE,
         phoneNumber: '0989211621',
         role: Role.GUEST,
-        active: true
+        active: true,
+        favoritesProduct: []
     };
 
     afterEach(() => {
@@ -249,7 +252,7 @@ describe('Login user', () => {
         (compare as jest.Mock) = compareMock;
         (generateToken as jest.Mock) = generateTokenMock;
         await login(req, resp);
-        const respData = resp._getJSONData() as BaseResponse<null>;
+        const respData = resp._getJSONData() as BaseResponseDto<null>;
 
         expect(resp.statusCode).toBe(200);
         expect(respData.status.code).toBe(400);
@@ -264,7 +267,7 @@ describe('Login user', () => {
         (compare as jest.Mock).mockResolvedValue(false);
 
         await login(req, resp);
-        const respData = resp._getJSONData() as BaseResponse<null>;
+        const respData = resp._getJSONData() as BaseResponseDto<null>;
 
         expect(resp.statusCode).toBe(200);
         expect(respData.status.code).toBe(400);
@@ -280,7 +283,7 @@ describe('Login user', () => {
         (compare as jest.Mock).mockResolvedValue(true);
         (generateToken as jest.Mock).mockReturnValueOnce("generatedToken");
         await login(req, resp);
-        const respData = resp._getJSONData() as BaseResponse<ILoginResponse>;
+        const respData = resp._getJSONData() as BaseResponseDto<ILoginResponse>;
         console.log(respData)
         expect(generateToken).toHaveBeenCalled();
         expect(resp.statusCode).toBe(200);
